@@ -1,0 +1,22 @@
+sudo: required
+services:
+    - docker
+#you can use the full path for tagging, or simply you can put a name instead of full path
+before_install:
+    - docker build -t willrocha92/react-test -f ./client/Dockerfile.dev ./client
+script:    
+    - docker run -e CI=true willrocha92/react-test npm run test
+
+after_success:
+    - docker build -t willrocha92/multi-client ./client
+    - docker build -t willrocha92/multi-nginx ./nginx
+    - docker build -t willrocha92/multi-server ./server
+    - docker build -t willrocha92/multi-worker ./worker
+#Log in to the docker CLI
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+# Take those images and push them to docker hub
+    - docker push willrocha92/multi-client
+    - docker push willrocha92/multi-nginx
+    - docker push willrocha92/multi-server
+    - docker push willrocha92/multi-worker
